@@ -1,0 +1,102 @@
+name: Tourism MLOps Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "tourism_mlops_project/**"
+      - ".github/workflows/pipeline.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  data-registration:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r tourism_mlops_project/requirements.txt
+
+      - name: Register and validate dataset
+        run: python tourism_mlops_project/model_building/data_register.py
+
+  data-preparation:
+    needs: data-registration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r tourism_mlops_project/requirements.txt
+
+      - name: Prepare train/test data
+        run: python tourism_mlops_project/model_building/prep.py
+
+      - name: Upload train/test split as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-tourism-data
+          path: tourism_mlops_project/prepared_data/*.csv
+          retention-days: 7
+
+  model-training:
+    needs: data-preparation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r tourism_mlops_project/requirements.txt
+
+      - name: Download prepared-data workflow artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-tourism-data
+          path: tourism_mlops_project/prepared_data
+
+      - name: Tune, evaluate and save best model
+        run: python tourism_mlops_project/model_building/train.py
+
+      - name: Verify deployment model exists
+        run: |
+          test -f tourism_mlops_project/deployment/tourism_model.joblib
+          test -f tourism_mlops_project/artifacts/metrics.json
+
+      - name: Commit updated model and experiment outputs to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tourism_mlops_project/deployment/tourism_model.joblib
+          git add tourism_mlops_project/artifacts/metrics.json
+          git add tourism_mlops_project/artifacts/parameter_grid.json
+          git add tourism_mlops_project/artifacts/cv_results.csv
+          git commit -m "chore: update trained tourism model [skip ci]" || echo "No artifact changes to commit"
+          git push origin main

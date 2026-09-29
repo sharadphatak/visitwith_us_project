@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local MLOps outputs
+tourism_mlops_project/mlruns/
+tourism_mlops_project/prepared_data/
+
+# OS files
+.DS_Store
+Thumbs.db
