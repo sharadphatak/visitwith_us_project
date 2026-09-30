@@ -121,23 +121,12 @@ with mlflow.start_run():
 
     example = X_train.head(5)
     signature = infer_signature(example, model.predict(example))
-   from skops.hub_utils import get_untrusted_types
-
-untrusted = get_untrusted_types(model)
     mlflow.sklearn.log_model(
         sk_model=model,
-        name="tourism_random_forest",
+        artifact_path="tourism_random_forest",
         signature=signature,
         input_example=example,
-        skops_trusted_types=list(untrusted.keys()),
     )
-#    mlflow.sklearn.log_model(
-#        sk_model=model,
-#        name="tourism_random_forest",
-#        signature=signature,
-#        input_example=example,
-#        skops_trusted_types=["sklearn.ensemble._forest.RandomForestClassifier", "sklearn.pipeline.Pipeline"],
-#    )
 
     # Simple CI quality gate.
     MIN_ROC_AUC = 0.80
