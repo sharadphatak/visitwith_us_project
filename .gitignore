@@ -9,6 +9,10 @@ __pycache__/
 tourism_mlops_project/mlruns/
 tourism_mlops_project/prepared_data/
 
+# Trained model and deployment artifacts
+*.joblib
+tourism_mlops_project/artifacts/
+
 # OS files
 .DS_Store
 Thumbs.db
