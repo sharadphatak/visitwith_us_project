@@ -121,11 +121,21 @@ with mlflow.start_run():
 
     example = X_train.head(5)
     signature = infer_signature(example, model.predict(example))
+    
+    # Log model with trusted sklearn types for RandomForest
     mlflow.sklearn.log_model(
         sk_model=model,
         artifact_path="tourism_random_forest",
         signature=signature,
         input_example=example,
+        skops_trusted_types=[
+            "sklearn.pipeline.Pipeline",
+            "sklearn.compose._column_transformer.ColumnTransformer",
+            "sklearn.ensemble._forest.RandomForestClassifier",
+            "sklearn.impute._simple.SimpleImputer",
+            "sklearn.preprocessing._encoders.OneHotEncoder",
+            "sklearn.preprocessing._scaler.StandardScaler",
+        ],
     )
 
     # Simple CI quality gate.
