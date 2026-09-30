@@ -126,6 +126,7 @@ with mlflow.start_run():
         name="tourism_random_forest",
         signature=signature,
         input_example=example,
+        skops_trusted_types=["sklearn.ensemble._forest.RandomForestClassifier", "sklearn.pipeline.Pipeline"],
     )
 
     # Simple CI quality gate.
