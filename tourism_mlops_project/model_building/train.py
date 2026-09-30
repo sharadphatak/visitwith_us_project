@@ -5,6 +5,7 @@ import joblib
 import mlflow
 import mlflow.sklearn
 import pandas as pd
+import numpy as np
 
 from mlflow.models import infer_signature
 from sklearn.compose import ColumnTransformer
@@ -122,22 +123,31 @@ with mlflow.start_run():
     example = X_train.head(5)
     signature = infer_signature(example, model.predict(example))
     
-    # Log model with trusted sklearn types for RandomForest
-    # Log model with trusted sklearn types for RandomForest
+    # Comprehensive list of trusted types for sklearn RandomForest pipeline with all dependencies
+    # This includes all numpy and sklearn types that may be serialized with the model
     mlflow.sklearn.log_model(
-       sk_model=model,
-       artifact_path="tourism_random_forest",
-       signature=signature,
-       input_example=example,
-       skops_trusted_types=[
-           "sklearn.pipeline.Pipeline",
-           "sklearn.compose._column_transformer.ColumnTransformer",
-           "sklearn.ensemble._forest.RandomForestClassifier",
-           "sklearn.impute._simple.SimpleImputer",
-           "sklearn.preprocessing._encoders.OneHotEncoder",
-           "sklearn.preprocessing._scaler.StandardScaler",
-           "sklearn.tree._tree.Tree",  # Add this line - required for RandomForest
-       ],
+        sk_model=model,
+        artifact_path="tourism_random_forest",
+        signature=signature,
+        input_example=example,
+        skops_trusted_types=[
+            "sklearn.pipeline.Pipeline",
+            "sklearn.compose._column_transformer.ColumnTransformer",
+            "sklearn.ensemble._forest.RandomForestClassifier",
+            "sklearn.impute._simple.SimpleImputer",
+            "sklearn.preprocessing._encoders.OneHotEncoder",
+            "sklearn.preprocessing._scaler.StandardScaler",
+            "sklearn.preprocessing._label.LabelEncoder",
+            "sklearn.tree._tree.Tree",
+            "sklearn.tree._classes.DecisionTreeClassifier",
+            "numpy.ndarray",
+            "numpy.dtype",
+            "numpy.generic",
+            "numpy.int64",
+            "numpy.float64",
+            "numpy.bool_",
+            "numpy.random.RandomState",
+        ],
     )
 
     # Simple CI quality gate.
